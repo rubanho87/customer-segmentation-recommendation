@@ -173,3 +173,17 @@ Toutes les dépendances sont listées dans :
 
 ```text
 requirements.txt
+
+## Dashboard Power BI
+
+Le fichier `customer_segmentation_dashboard.pbix` fournit un tableau de bord interactif construit à partir du dataset nettoyé (`transactions_with_clusters.csv`).
+
+Les principaux indicateurs affichés sont :
+- Chiffre d’affaires total sur la période (2010–2011) ;
+- Nombre total de clients uniques ;
+- Nombre de transactions ;
+- Évolution mensuelle du chiffre d’affaires ;
+- Répartition du revenu par segment de clients (VIP / High value, Occasionnel, At risk / Low value) ;
+- Top produits par revenu.
+
+Le donut est cliquable : lorsqu’on sélectionne un segment (par exemple les clients VIP), les autres visuels se filtrent automatiquement, ce qui permet d’analyser rapidement les produits et les mois qui contribuent le plus à ce segment.
