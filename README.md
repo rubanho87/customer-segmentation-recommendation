@@ -14,7 +14,7 @@ L’idée est de montrer tout le pipeline : des données brutes → aux segments
 
 ## 📊 Données
 
-- **Source** : dataset *« Customer Segmentation & Recommendation System »* disponible sur Kaggle.
+- **Source** : dataset *« Customer Segmentation & Recommendation System »* disponible sur Kaggle.  
 - **Fichier brut** : `data/raw_data/data.csv`
 - **Variables principales** :
   - `InvoiceNo` : identifiant de facture  
@@ -24,7 +24,7 @@ L’idée est de montrer tout le pipeline : des données brutes → aux segments
   - `InvoiceDate` : date / heure de la transaction  
   - `UnitPrice` : prix unitaire  
   - `CustomerID` : identifiant client  
-  - `Country` : pays
+  - `Country` : pays  
 
 Aucune donnée sensible ou nominative n’est utilisée.
 
@@ -39,23 +39,23 @@ Tout le workflow est implémenté dans le notebook :
 ### 1. Chargement des données
 
 - Lecture du fichier brut `data/raw_data/data.csv`
-- Vérification des types (dates, numériques, etc.)
+- Vérification / correction des types (dates, numériques, etc.)
 
 ### 2. Nettoyage & préparation
 
 - Suppression :
-  - des lignes sans `CustomerID`,
-  - des quantités / prix unitaires négatifs ou nuls,
+  - des lignes sans `CustomerID` ;
+  - des quantités / prix unitaires négatifs ou nuls ;
   - des annulations et doublons.
 - Création de :
-  - `TotalPrice = Quantity × UnitPrice`
+  - `TotalPrice = Quantity × UnitPrice` ;
   - variables de temps (par ex. `YearMonth`).
 
-Résultat : un tableau **transactions propres** (base pour l’EDA & les KPIs).
+👉 Résultat : un tableau de **transactions propres** (base pour l’EDA et les KPIs).
 
 ### 3. Analyse exploratoire (EDA)
 
-- **KPIs de base** : nombre de clients, produits, pays, volume de transactions, revenu total.
+- **KPIs de base** : nombre de clients, de produits, de pays, volume de transactions, revenu total.  
 - **Top produits** :
   - par nombre de transactions,
   - par quantité vendue,
@@ -74,15 +74,15 @@ Pour chaque client (`CustomerID`) :
 - **Frequency** : nombre de factures (transactions distinctes) ;
 - **Monetary** : revenu total généré par le client.
 
-Résultat : un tableau **RFM** avec une ligne par client.
+👉 Résultat : un tableau **RFM** avec une ligne par client.
 
 ### 5. Scoring RFM (R, F, M entre 1 et 5) & mini-segmentation
 
-- Utilisation de `pd.qcut` pour découper Recency, Frequency et Monetary en 5 classes.
+- Utilisation de `pd.qcut` pour découper Recency, Frequency et Monetary en **5 classes**.
 - Attribution de scores :
   - **R_score** : 5 = très récent, 1 = très ancien ;
   - **F_score** : 5 = très fréquent, 1 = peu fréquent ;
-  - **M_score** : 5 = gros contributeur, 1 = petit revenu.
+  - **M_score** : 5 = gros contributeur, 1 = faible revenu.
 - Score global :
 
   \[
@@ -99,10 +99,10 @@ Résultat : un tableau **RFM** avec une ligne par client.
 ### 6. Clustering K-means & profilage
 
 - Préparation des variables :
-  - log-transform sur Frequency et Monetary pour limiter l’effet des très gros clients ;
+  - transformation logarithmique sur Frequency et Monetary pour limiter l’effet des très gros clients ;
   - standardisation (moyenne 0, écart-type 1).
 - Choix du nombre de clusters **k** :
-  - **méthode du coude (Elbow)** sur l’inertie,
+  - **méthode du coude (Elbow)** sur l’inertie ;
   - **score de silhouette** pour évaluer la qualité des clusters.
 - Entraînement de K-means (k ≈ 4 dans ce projet).
 - Profilage des clusters :
@@ -119,21 +119,21 @@ Chaque client reçoit un `cluster_kmeans` + un label lisible (`cluster_label`).
 À partir des transactions enrichies (avec le cluster de chaque client) :
 
 - Agrégation par `cluster_kmeans` + `StockCode` + `Description`.
-- Calcul pour chaque produit et chaque cluster :
-  - nombre de transactions (`transactions_count`),
-  - quantité totale vendue (`quantity_sold`),
+- Calcul, pour chaque produit et chaque cluster :
+  - nombre de transactions (`transactions_count`) ;
+  - quantité totale vendue (`quantity_sold`) ;
   - revenu généré (`revenue`).
 
-Résultat : les **produits stars** par segment de clients.
+👉 Résultat : les **produits stars** par segment de clients.
 
 ### 8. Système de recommandation
 
 Logique simple :
 
-1. On récupère le **cluster** du client cible.
-2. On prend les **top produits** de ce cluster (par revenu ou volume).
-3. On retire les produits déjà achetés par ce client.
-4. On renvoie les *N* meilleurs produits restants comme recommandations.
+1. Récupérer le **cluster** du client cible ;  
+2. Prendre les **top produits** de ce cluster (par revenu ou volume) ;  
+3. Retirer les produits déjà achetés par ce client ;  
+4. Retourner les *N* meilleurs produits restants comme recommandations.
 
 Objectif : montrer un exemple transparent de recommandation par similarité de segment (sans modèle complexe).
 
@@ -141,49 +141,62 @@ Objectif : montrer un exemple transparent de recommandation par similarité de s
 
 ## 📂 Fichiers de sortie (processed data)
 
-Le notebook peut enregistrer plusieurs vues prêtes pour un dashboard :
+Le notebook génère plusieurs vues prêtes pour un dashboard :
 
 - `data/processed_data/transactions_clean.csv`  
   → transactions nettoyées avec `TotalPrice`, `YearMonth`, etc.
 - `data/processed_data/transactions_with_clusters.csv`  
-  → transactions + cluster et label client.
+  → transactions + cluster K-means et label de segment client.
 - `data/processed_data/customers_rfm_clusters.csv`  
   → une ligne par client avec RFM, scores, cluster_kmeans, labels.
 - `data/processed_data/top_products_by_cluster.csv`  
   → top produits (transactions, quantités, revenus) par cluster.
 
-Ces fichiers sont pensés pour être utilisés dans Power BI / Tableau / autre outil de visualisation.
+Ces fichiers sont pensés pour être utilisés dans **Power BI / Tableau / Google Sheets / Excel** ou tout autre outil de visualisation.
 
 ---
 
-## 🛠 Environnement
+## 📊 Dashboard Power BI
+
+Le fichier **`customer_segmentation_dashboard.pbix`** fournit un tableau de bord interactif construit à partir des données traitées (principalement `transactions_with_clusters.csv` et `customers_rfm_clusters.csv`).
+
+Le dashboard est organisé en plusieurs vues :
+
+1. **Page 1 – Vue globale (Customer Segmentation Dashboard)**  
+   - Chiffre d’affaires total (2010–2011)  
+   - Nombre total de clients uniques  
+   - Nombre de transactions  
+   - Évolution mensuelle du chiffre d’affaires  
+   - Répartition du revenu par segment de clients (VIP / High value, Occasionnel, At risk / Low value)  
+   - Top produits par revenu
+
+2. **Page 2 – Vue par segment / cluster**  
+   - Tableau détaillé des clients (RFM, scores, segment, cluster)  
+   - Filtres par segment / cluster pour analyser le profil des clients et leur valeur.
+
+3. **Page 3 – Top produits par segment**  
+   - Slicer de segment client (`cluster_label`)  
+   - Top 10 produits par chiffre d’affaires pour chaque segment  
+   - Indicateurs : nombre de transactions, quantités vendues, chiffre d’affaires.
+
+Le donut / slicer de segment est cliquable : lorsqu’on sélectionne un segment (par exemple les clients VIP), les autres visuels se filtrent automatiquement, ce qui permet d’analyser rapidement les produits et les périodes qui contribuent le plus à ce segment.
+
+---
+
+## 🛠 Environnement & installation
 
 **Langage** : Python 3.x  
 
 **Packages principaux** :
 
-- `pandas`
-- `numpy`
-- `scikit-learn`
-- `matplotlib`
-- `seaborn` (optionnel)
-- `jupyter`
+- `pandas`  
+- `numpy`  
+- `scikit-learn`  
+- `matplotlib`  
+- `seaborn` (optionnel)  
+- `jupyter`  
 
 Toutes les dépendances sont listées dans :
 
 ```text
 requirements.txt
-
-## Dashboard Power BI
-
-Le fichier `customer_segmentation_dashboard.pbix` fournit un tableau de bord interactif construit à partir du dataset nettoyé (`transactions_with_clusters.csv`).
-
-Les principaux indicateurs affichés sont :
-- Chiffre d’affaires total sur la période (2010–2011) ;
-- Nombre total de clients uniques ;
-- Nombre de transactions ;
-- Évolution mensuelle du chiffre d’affaires ;
-- Répartition du revenu par segment de clients (VIP / High value, Occasionnel, At risk / Low value) ;
-- Top produits par revenu.
-
-Le donut est cliquable : lorsqu’on sélectionne un segment (par exemple les clients VIP), les autres visuels se filtrent automatiquement, ce qui permet d’analyser rapidement les produits et les mois qui contribuent le plus à ce segment.
